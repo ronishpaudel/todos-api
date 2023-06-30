@@ -25,10 +25,14 @@ app.get("/todos", async (req: Request, res: Response) => {
   const todos = await prisma.todos.findMany({});
   res.json(todos);
 });
-
 app.get("/todos/:id", async (req: Request, res: Response) => {
-  const todos = await prisma.todos.findMany({});
-  res.json(todos);
+  const { id } = req.params;
+  const todo = await prisma.todos.findUnique({
+    where: {
+      id: Number(id),
+    },
+  });
+  res.json(todo);
 });
 
 app.put("/todos", async (req: Request, res: Response) => {
