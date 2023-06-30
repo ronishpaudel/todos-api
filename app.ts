@@ -21,19 +21,25 @@ app.post("/todos", async (req: Request, res: Response) => {
   res.json(todo);
 });
 
-app.get("/todos/all", async (req: Request, res: Response) => {
+app.get("/todos", async (req: Request, res: Response) => {
+  const todos = await prisma.todos.findMany({});
+  res.json(todos);
+});
+
+app.get("/todos/:id", async (req: Request, res: Response) => {
   const todos = await prisma.todos.findMany({});
   res.json(todos);
 });
 
 app.put("/todos", async (req: Request, res: Response) => {
-  const { id, title } = req.body;
+  const { id, title, description } = req.body;
   const updatedTodo = await prisma.todos.update({
     where: {
       id: id,
     },
     data: {
       title: title,
+      description: description,
     },
   });
   res.json(updatedTodo);
