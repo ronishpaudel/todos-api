@@ -11,52 +11,72 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.post("/todos", async (req: Request, res: Response) => {
-  const { title, description } = req.body;
-  const todo = await prisma.todos.create({
-    data: {
-      title: title,
-      description: description,
-    },
-  });
-  res.json(todo);
+  try {
+    const { title, description } = req.body;
+    const todo = await prisma.todos.create({
+      data: {
+        title: title,
+        description: description,
+      },
+    });
+    res.json(todo);
+  } catch (e) {
+    res.status(404).send("Not updated");
+  }
 });
 
 app.get("/todos", async (req: Request, res: Response) => {
-  const todos = await prisma.todos.findMany({});
-  res.json(todos);
+  try {
+    const todos = await prisma.todos.findMany();
+    res.json(todos);
+  } catch (e) {
+    res.status(404).send("Not Found");
+  }
 });
 app.get("/todos/:id", async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const todo = await prisma.todos.findUnique({
-    where: {
-      id: Number(id),
-    },
-  });
-  res.json(todo);
+  try {
+    const { id } = req.params;
+    const todo = await prisma.todos.findUnique({
+      where: {
+        id: Number(id),
+      },
+    });
+    res.json(todo);
+  } catch (e) {
+    res.status(404).send("there is no such id in todos");
+  }
 });
 
 app.put("/todos", async (req: Request, res: Response) => {
-  const { id, title, description } = req.body;
-  const updatedTodo = await prisma.todos.update({
-    where: {
-      id: id,
-    },
-    data: {
-      title: title,
-      description: description,
-    },
-  });
-  res.json(updatedTodo);
+  try {
+    const { id, title, description } = req.body;
+    const updatedTodo = await prisma.todos.update({
+      where: {
+        id: id,
+      },
+      data: {
+        title: title,
+        description: description,
+      },
+    });
+    res.json(updatedTodo);
+  } catch (e) {
+    res.status(404).send("Todos Not Updated");
+  }
 });
 
 app.delete("/todos/:id", async (req: Request, res: Response) => {
-  const id = req.params.id;
-  const deletedTodo = await prisma.todos.delete({
-    where: {
-      id: Number(id),
-    },
-  });
-  res.json(deletedTodo);
+  try {
+    const id = req.params.id;
+    const deletedTodo = await prisma.todos.delete({
+      where: {
+        id: Number(id),
+      },
+    });
+    res.json(deletedTodo);
+  } catch (e) {
+    res.status(404).send("Nothing here tto delete");
+  }
 });
 
 app.listen(PORT, () => {
