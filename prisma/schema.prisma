@@ -29,10 +29,13 @@ model Todo {
   id          Int      @id @default(autoincrement())
   title       String   @db.VarChar(50)
   description String   @db.VarChar(200)
-  user        User     @relation(fields: [userId], references: [id])
-  userId      Int      @db.Int
+  imageUrl    String?  @db.VarChar(200)
+  user        User?    @relation(fields: [userId], references: [id])
+  userId      Int?     @db.Int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  completed   Int      @default(0) @db.TinyInt
+
   // categoryTodo CategoryTodo[]
 
   @@map("todos")
