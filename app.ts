@@ -15,43 +15,6 @@ const PORT = 3005;
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello, World!");
 });
-
-app.post("/todos", async (req: Request, res: Response) => {
-  try {
-    const { title, description, imageUrl } = req.body;
-
-    const todo = await prisma.todo.create({
-      data: {
-        title: title,
-        description: description,
-        imageUrl: imageUrl,
-      },
-    });
-    res.json(todo);
-  } catch (e) {
-    if (e instanceof Error) res.status(404).send(e.message);
-  }
-});
-
-app.put("/todos", async (req: Request, res: Response) => {
-  try {
-    const { id, title, description, imageUrl } = req.body;
-    const updatedTodo = await prisma.todo.update({
-      where: {
-        id: Number(id),
-      },
-      data: {
-        title: title,
-        description: description,
-        imageUrl: imageUrl,
-      },
-    });
-    res.json(updatedTodo);
-  } catch (e) {
-    res.status(404).send("Todos Not Updated");
-  }
-});
-
 app.get("/todos", async (req: Request, res: Response) => {
   const currentPage = Number(req.query.page) || 1;
   const pageSize = Number(req.query.page_size) || 10;
@@ -62,6 +25,18 @@ app.get("/todos", async (req: Request, res: Response) => {
       const todos = await prisma.todo.findMany({
         skip: offset,
         take: pageSize,
+        select: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          title: true,
+          description: true,
+          imageUrl: true,
+          id: true,
+        },
         orderBy: {
           createdAt: "desc",
         },
@@ -71,6 +46,9 @@ app.get("/todos", async (req: Request, res: Response) => {
       const todos = await prisma.todo.findMany({
         skip: offset,
         take: pageSize,
+        select: {
+          category: true,
+        },
         where: {
           title: {
             contains: String(searchVal),
@@ -86,6 +64,7 @@ app.get("/todos", async (req: Request, res: Response) => {
     res.status(404).send("Not Found");
   }
 });
+
 app.get("/todos/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -100,6 +79,56 @@ app.get("/todos/:id", async (req: Request, res: Response) => {
   }
 });
 
+app.post("/todos", async (req: Request, res: Response) => {
+  try {
+    const { title, description, imageUrl, categoryId } = req.body;
+
+    const todo = await prisma.todo.create({
+      data: {
+        title: title,
+        description: description,
+        imageUrl: imageUrl,
+        categoryId: categoryId as number,
+      },
+    });
+    res.json(todo);
+  } catch (e) {
+    if (e instanceof Error) res.status(404).send(e.message);
+  }
+});
+
+app.put("/todos", async (req: Request, res: Response) => {
+  try {
+    const { id, title, description, imageUrl, categoryId } = req.body;
+    const updatedTodo = await prisma.todo.update({
+      where: {
+        id: Number(id),
+      },
+      data: {
+        title: title,
+        description: description,
+        imageUrl: imageUrl,
+        categoryId: categoryId as number,
+      },
+    });
+    res.json(updatedTodo);
+  } catch (e) {
+    res.status(404).send("Todos Not Updated");
+  }
+});
+app.delete("/category/:id", async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id;
+    const deletedCategory = await prisma.category.delete({
+      where: {
+        id: Number(id),
+      },
+    });
+    res.json(deletedCategory);
+  } catch (e) {
+    res.status(404).send("Nothing here tto delete");
+  }
+});
 app.delete("/todos/:id", async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
@@ -113,6 +142,70 @@ app.delete("/todos/:id", async (req: Request, res: Response) => {
     res.status(404).send("Nothing here tto delete");
   }
 });
+app.get("/category", async (req, res) => {
+  const currentPage = Number(req.query.page) || 1;
+  const pageSize = Number(req.query.page_size) || 10;
+  const offset = pageSize * (currentPage - 1);
+  const searchVal = req.query.q;
+  try {
+    if (!searchVal) {
+      const categories = await prisma.category.findMany({
+        skip: offset,
+        take: pageSize,
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+      res.json(categories);
+    } else {
+      const todos = await prisma.category.findMany({
+        skip: offset,
+        take: pageSize,
+        where: {
+          name: {
+            contains: String(searchVal),
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+      res.json(todos);
+    }
+  } catch (e) {
+    res.status(404).send("Not Found");
+  }
+});
+app.post("/category", async (req, res) => {
+  try {
+    const { name } = req.body as Prisma.UserCreateArgs["data"];
+    const categories = await prisma.category.create({
+      data: {
+        name: name,
+      },
+    });
+    res.json(categories);
+  } catch (e) {
+    res.status(404).send("category not updated");
+  }
+});
+app.put("/category", async (req: Request, res: Response) => {
+  try {
+    const { id, name } = req.body;
+    const updatedCategories = await prisma.category.update({
+      where: {
+        id: Number(id),
+      },
+      data: {
+        name: name,
+      },
+    });
+    res.json(updatedCategories);
+  } catch (e) {
+    res.status(404).send("Todos Not Updated");
+  }
+});
+
 app.post("/user", async (req, res) => {
   const { email, name, username, password, dob } =
     req.body as Prisma.UserCreateArgs["data"];
@@ -163,6 +256,7 @@ app.get("/users", async (req: Request, res: Response) => {
     res.status(404).send("Not Found");
   }
 });
+
 app.put("/todos/check/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
