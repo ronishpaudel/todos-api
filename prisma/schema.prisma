@@ -26,37 +26,27 @@ model User {
 }
 
 model Todo {
-  id          Int      @id @default(autoincrement())
-  title       String   @db.VarChar(50)
-  description String   @db.VarChar(200)
-  imageUrl    String?  @db.VarChar(200)
-  user        User?    @relation(fields: [userId], references: [id])
-  userId      Int?     @db.Int
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  completed   Int      @default(0) @db.TinyInt
-
-  // categoryTodo CategoryTodo[]
+  id          Int       @id @default(autoincrement())
+  title       String    @db.VarChar(50)
+  description String    @db.VarChar(200)
+  imageUrl    String?   @db.VarChar(200)
+  user        User?     @relation(fields: [userId], references: [id])
+  userId      Int?      @db.Int
+  category    Category? @relation(fields: [categoryId], references: [id])
+  categoryId  Int?      @db.Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completed   Int       @default(0) @db.TinyInt
 
   @@map("todos")
 }
 
-// model Category {
-//   id           Int            @id @default(autoincrement())
-//   name         String         @db.VarChar(60)
-//   createdAt    DateTime       @default(now())
-//   updatedAt    DateTime       @updatedAt
-//   categoryTodo CategoryTodo[]
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(60)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Todo      Todo[]
 
-//   @@map("categories")
-// }
-
-// model CategoryTodo {
-//   todo       Todo     @relation(fields: [todoId], references: [id])
-//   todoId     Int      @db.Int
-//   category   Category @relation(fields: [categoryId], references: [id])
-//   categoryId Int      @db.Int
-
-//   @@id([categoryId, todoId])
-//   @@map("categories_todos")
-// }
+  @@map("categories")
+}
